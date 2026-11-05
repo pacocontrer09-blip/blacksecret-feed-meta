@@ -1,0 +1,27 @@
+name: Actualizar feed de Meta
+
+on:
+  schedule:
+    - cron: "0 9 * * *"  # 3:00 am hora de México
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  feed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python generar_feed.py
+      - name: Guardar feed si cambió
+        run: |
+          git config user.name "feed-bot"
+          git config user.email "feed-bot@users.noreply.github.com"
+          git add feed.csv
+          git diff --cached --quiet || git commit -m "Feed $(date -u +%F)"
+          git push
